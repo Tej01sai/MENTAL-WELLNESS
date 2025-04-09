@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+numpy
+pandas
+
+keras
+tensorflow>=2.8,<2.11  # Update TensorFlow to avoid conflict
+deepface
+retinaface
+
+torch>=2.0  # Ensures compatibility with typing-extensions
+torchvision
+opencv-python
