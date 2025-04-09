@@ -1,0 +1,25 @@
+# Vercel
+.vercel
+
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+/build/
+/dist/
+
+# Environment variables
+.env
+.env.*.local
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

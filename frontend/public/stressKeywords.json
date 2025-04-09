@@ -1,0 +1,5 @@
+{
+    "high": ["angry", "frustrated", "yell", "shout", "annoyed", "furious", "stressed", "irritated", "mad", "upset", "agitated", "overwhelmed"],
+    "medium": ["worried", "nervous", "concerned", "uncertain", "anxious", "tense", "uneasy", "troubled", "restless"],
+    "low": ["calm", "relaxed", "peaceful", "chill", "content", "serene", "easygoing", "at ease"]
+  }
