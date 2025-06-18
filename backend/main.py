@@ -7,6 +7,7 @@ from deepface import DeepFace
 import uvicorn
 import logging
 import bcrypt
+import os
 from pymongo import MongoClient
 
 # === SETUP ===
@@ -81,6 +82,6 @@ async def analyze_emotion(file: UploadFile = File(...)):
         logging.error(f"Error processing image: {str(e)}")
         return {"error": str(e)}
 
-# === RUN ===
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))  # Use Railway's PORT env variable
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
