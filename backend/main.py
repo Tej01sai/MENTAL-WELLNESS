@@ -27,9 +27,10 @@ app.add_middleware(
 )
 
 # === MONGODB CONNECTION ===
-client = MongoClient("mongodb://localhost:27017/")
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
+client = MongoClient(MONGODB_URL)
 db = client["mental_wellness"]
-users_collection = db["users"]  
+users_collection = db["users"]
 
 # === MODELS ===
 class UserIn(BaseModel):
