@@ -16,9 +16,12 @@ logging.basicConfig(level=logging.INFO)
 # === CORS ===
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
-      # Update to your frontend URL in production
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:3000",
+        "https://mental-wellness-xi.vercel.app",
+        "https://mental-wellness-lsihyz5sy-sai-tejas-projects-2a2e36c4.vercel.app"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
