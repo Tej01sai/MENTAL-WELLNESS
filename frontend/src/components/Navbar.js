@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaHome, FaChartLine, FaList, FaComments, FaBars, FaTimes } from 'react-icons/fa';
+import { FaHome, FaChartLine, FaList, FaComments, FaBars, FaTimes, FaUser } from 'react-icons/fa';
 
 const Navbar = () => {
   const location = useLocation();
@@ -15,6 +15,7 @@ const Navbar = () => {
     { path: '/analyze', label: 'Analyze', icon: <FaChartLine /> },
     { path: '/results', label: 'Results', icon: <FaList /> },
     { path: '/chat', label: 'Chat', icon: <FaComments /> },
+    
   ];
 
   return (
@@ -24,12 +25,10 @@ const Navbar = () => {
           Mental Wellness AI
         </Link>
 
-        {/* Mobile hamburger menu */}
         <div className="menu-icon" onClick={toggleMenu}>
           {isMenuOpen ? <FaTimes /> : <FaBars />}
         </div>
 
-        {/* Navigation links */}
         <ul className={isMenuOpen ? 'nav-menu active' : 'nav-menu'}>
           {navItems.map((item) => (
             <li key={item.path} className="nav-item">
@@ -52,11 +51,11 @@ const Navbar = () => {
           padding: 0;
           box-sizing: border-box;
         }
-        
+
         body {
           margin: 0;
         }
-        
+
         .navbar {
           background: linear-gradient(90deg, #4776e6 0%, #8e54e9 100%);
           height: 70px;
@@ -91,7 +90,7 @@ const Navbar = () => {
           position: relative;
           overflow: hidden;
         }
-        
+
         .navbar-logo:hover {
           color: #ffdd57;
           text-shadow: 0 0 10px rgba(255, 221, 87, 0.5);
@@ -127,7 +126,7 @@ const Navbar = () => {
           transform: translateY(-3px);
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .nav-link:active {
           transform: translateY(0);
           box-shadow: none;
@@ -149,7 +148,7 @@ const Navbar = () => {
           background-color: #ffdd57;
           animation: slideIn 0.3s ease-in-out;
         }
-        
+
         @keyframes slideIn {
           from {
             width: 0;
@@ -166,7 +165,7 @@ const Navbar = () => {
           font-size: 1.2rem;
           transition: transform 0.3s ease;
         }
-        
+
         .nav-link:hover .nav-icon {
           transform: rotate(10deg) scale(1.2);
         }
@@ -178,7 +177,7 @@ const Navbar = () => {
           cursor: pointer;
           transition: all 0.3s ease;
         }
-        
+
         .menu-icon:hover {
           color: #ffdd57;
           transform: rotate(180deg);
@@ -218,12 +217,14 @@ const Navbar = () => {
             animation: fadeIn 0.5s ease forwards;
             opacity: 0;
           }
-          
+
           .nav-menu.active .nav-item:nth-child(1) { animation-delay: 0.1s; }
           .nav-menu.active .nav-item:nth-child(2) { animation-delay: 0.2s; }
           .nav-menu.active .nav-item:nth-child(3) { animation-delay: 0.3s; }
           .nav-menu.active .nav-item:nth-child(4) { animation-delay: 0.4s; }
-          
+          .nav-menu.active .nav-item:nth-child(5) { animation-delay: 0.5s; } /* Login */
+          .nav-menu.active .nav-item:nth-child(6) { animation-delay: 0.6s; } /* Register */
+
           @keyframes fadeIn {
             from {
               opacity: 0;
@@ -245,7 +246,7 @@ const Navbar = () => {
           .nav-link.active::after {
             display: none;
           }
-          
+
           .nav-link.active {
             background-color: rgba(255, 255, 255, 0.1);
             border-left: 4px solid #ffdd57;

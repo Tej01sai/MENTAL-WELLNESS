@@ -1,38 +1,43 @@
-import React from 'react';
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+// src/App.js
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import { AuthContext } from './AuthContext';
+
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
-import Analysis from './pages/Analysis';
+import Analyze from './pages/Analysis';
 import Results from './pages/Results';
 import Chat from './components/Chat';
 
-// Define your routes
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: (
-      <>
-        <Navbar />
-        <Outlet />
-      </>
-    ),
-    children: [
-      { index: true, element: <Home /> },
-      { path: 'analyze', element: <Analysis /> },
-      { path: 'results', element: <Results /> },
-      { path: 'chat', element: <Chat /> }, // ✅ Chat.js is used here
-    ],
-  },
-], {
-  future: {
-    v7_startTransition: true, // Opt into v7 startTransition behavior
-    v7_relativeSplatPath: true, // Opt into v7 relative splat path behavior
-  },
-});
-
-// App component
 const App = () => {
-  return <RouterProvider router={router} />;
+  const { user } = useContext(AuthContext);
+
+  return (
+    <Router>
+      {user && <Navbar />}
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />
+        <Route path="/register" element={user ? <Navigate to="/home" /> : <Register />} />
+
+        {/* Protected routes */}
+        {user ? (
+          <>
+            <Route path="/home" element={<Home />} />
+            <Route path="/analyze" element={<Analyze />} />
+            <Route path="/results" element={<Results />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="*" element={<Navigate to="/home" />} />
+          </>
+        ) : (
+          <Route path="*" element={<Navigate to="/login" />} />
+        )}
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;

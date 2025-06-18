@@ -13,3 +13,5 @@ retinaface
 torch>=2.0  # Ensures compatibility with typing-extensions
 torchvision
 opencv-python
+pymongo
+bcrypt

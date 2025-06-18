@@ -1,6 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Import from 'react-dom/client'
+import ReactDOM from 'react-dom/client';
+import './index.css';
 import App from './App';
+import { AuthProvider } from './AuthContext';
 
-const root = ReactDOM.createRoot(document.getElementById('root')); // Create root
-root.render(<App />); // Render the App
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
