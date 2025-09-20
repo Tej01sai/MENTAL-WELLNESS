@@ -33,7 +33,7 @@ app.add_middleware(
 
 
 # MongoDB Atlas connection
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb+srv://sai727868:<db_password>@cluster0.p1wnggu.mongodb.net/")
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb+srv://sai727868:Sai1234@cluster0.p1wnggu.mongodb.net/")
 DATABASE_NAME = os.getenv("DATABASE_NAME", "mental_wellness")
 
 try:
