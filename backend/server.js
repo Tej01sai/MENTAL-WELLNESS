@@ -11,7 +11,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Middleware
 app.use(express.json());
-app.use(cors()); // 🔥 Fix CORS issue
+app.use(cors()); 
 
 /**
  * Analyze stress levels using OpenAI
@@ -33,7 +33,7 @@ async function analyzeStress(text) {
     }
 
     try {
-      return JSON.parse(aiResponse); // 🔥 Fix potential JSON parsing error
+      return JSON.parse(aiResponse); // 
     } catch (jsonError) {
       console.error("JSON Parsing Error:", jsonError);
       return { stressLevel: 0, confidence: 0, suggestion: "Unable to analyze stress properly." };

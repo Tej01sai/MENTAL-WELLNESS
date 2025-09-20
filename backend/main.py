@@ -8,13 +8,17 @@ import uvicorn
 import logging
 import bcrypt
 import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-# === SETUP ===
+
+# Load environment variables
+load_dotenv()
+
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 
-# === CORS ===
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -27,18 +31,49 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# === MONGODB CONNECTION ===
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/")
-client = MongoClient(MONGODB_URL)
-db = client["mental_wellness"]
-users_collection = db["users"]
 
-# === MODELS ===
+# MongoDB Atlas connection
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb+srv://sai727868:<db_password>@cluster0.p1wnggu.mongodb.net/")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "mental_wellness")
+
+try:
+    client = MongoClient(MONGODB_URL)
+    # Test the connection
+    client.admin.command('ping')
+    db = client[DATABASE_NAME]
+    users_collection = db["users"]
+    logging.info("Successfully connected to MongoDB Atlas")
+except Exception as e:
+    logging.error(f"Error connecting to MongoDB Atlas: {e}")
+    raise e
+
+
 class UserIn(BaseModel):
     username: str
     password: str
 
-# === AUTH ROUTES ===
+
+@app.get("/")
+def health_check():
+    return {"status": "healthy", "message": "Mental Wellness AI API is running"}
+
+
+@app.get("/health")
+def detailed_health_check():
+    try:
+        # Test database connection
+        client.admin.command('ping')
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "message": "Mental Wellness AI API"
+    }
+
+
 @app.post("/register")
 def register(user: UserIn):
     if users_collection.find_one({"username": user.username}):
@@ -59,7 +94,7 @@ def login(user: UserIn):
 
     return {"message": "Login successful"}
 
-# === EMOTION DETECTION ROUTE ===
+
 @app.post("/analyze_emotion/")
 async def analyze_emotion(file: UploadFile = File(...)):
     try:
@@ -83,5 +118,5 @@ async def analyze_emotion(file: UploadFile = File(...)):
         return {"error": str(e)}
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Use Railway's PORT env variable
+    port = int(os.environ.get("PORT", 8000))  
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
