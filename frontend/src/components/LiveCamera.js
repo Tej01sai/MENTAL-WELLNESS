@@ -39,7 +39,7 @@ const LiveCamera = () => {
       formData.append("file", blob, "capture.jpg");
 
       try {
-        const response = await fetch("http://localhost:5001/analyze_emotion/", {
+        const response = await fetch("https://mental-wellness-production.up.railway.app/analyze_emotion/", {
           method: "POST",
           body: formData,
         });

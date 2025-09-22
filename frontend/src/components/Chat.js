@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001"; // 🔥 Use environment variable
+const API_URL = process.env.REACT_APP_API_URL || "https://mental-wellness-production.up.railway.app"; // 🔥 Use deployed Railway backend
 
 const Chat = () => {
   const { user } = useContext(AuthContext);

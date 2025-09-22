@@ -12,7 +12,7 @@ const Results = () => {
       if (!user?.username) return;
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5001/analytics/${encodeURIComponent(user.username)}`);
+        const res = await fetch(`https://mental-wellness-production.up.railway.app/analytics/${encodeURIComponent(user.username)}`);
         const data = await res.json();
         setAnalytics(data);
       } catch (e) {
