@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -13,16 +13,16 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://mental-wellness-production.up.railway.app/login', {
+      const response = await fetch('http://localhost:5001/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ identifier, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        login(data);
+        login({ username: data.username, email: data.email, phone: data.phone });
         navigate('/home'); // 👈 redirect to main site
       } else {
         setError('Invalid credentials');
@@ -39,10 +39,10 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-4">
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-purple-300"
-            placeholder="Username"
+            placeholder="Email or Username"
             required
           />
           <input

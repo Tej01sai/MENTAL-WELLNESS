@@ -35,4 +35,9 @@ const generateResponse = async (text) => {
   }
 };
 
-module.exports = { generateResponse };
+// Provide a compat wrapper for routes using limitedGenerateResponse
+const limitedGenerateResponse = async (text) => {
+  return generateResponse(text);
+};
+
+module.exports = { generateResponse, limitedGenerateResponse };

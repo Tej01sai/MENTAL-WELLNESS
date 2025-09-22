@@ -2,10 +2,10 @@ const dialogflow = require("dialogflow");
 const path = require("path");
 require("dotenv").config();
 
-// Load the Dialogflow service account key
-const CREDENTIALS = require(path.join(__dirname, "../config/dialogflow-key.json"));
+// Load the Dialogflow service account key (matches existing repo path)
+const CREDENTIALS = require(path.join(__dirname, "../keys/dialogflow-key.json"));
 
-const projectId = CREDENTIALS.project_id; // Get project ID from key
+const projectId = CREDENTIALS.project_id;
 const sessionClient = new dialogflow.SessionsClient({ credentials: CREDENTIALS });
 
 const detectIntent = async (message, sessionId = "12345") => {
@@ -31,3 +31,5 @@ const detectIntent = async (message, sessionId = "12345") => {
 };
 
 module.exports = { detectIntent };
+
+

@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../AuthContext";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"; // 🔥 Use environment variable
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5001"; // 🔥 Use environment variable
 
 const Chat = () => {
+  const { user } = useContext(AuthContext);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [stressLevel, setStressLevel] = useState(0);
   const [suggestion, setSuggestion] = useState("");
   const [wavePosition, setWavePosition] = useState(0);
+  const [conversationCount, setConversationCount] = useState(0);
+  const [showResultsPrompt, setShowResultsPrompt] = useState(false);
 
   // Animation for the wave background
   useEffect(() => {
@@ -20,11 +24,27 @@ const Chat = () => {
     return () => clearInterval(waveAnimation);
   }, []);
 
+  // Fetch conversation count when component loads
+  useEffect(() => {
+    const fetchConversationCount = async () => {
+      if (!user?.username) return;
+      try {
+        const response = await axios.get(`${API_URL}/analytics/${user.username}`);
+        const data = response.data;
+        setConversationCount(data.conversationCount || 0);
+        setShowResultsPrompt(data.hasEnoughData);
+      } catch (error) {
+        console.log('Analytics not available yet');
+      }
+    };
+    fetchConversationCount();
+  }, [user]);
+
   const handleSend = async () => {
     if (message.trim()) {
       setIsLoading(true);
       try {
-        const response = await axios.post(`${API_URL}/api/send-message`, { message });
+        const response = await axios.post(`${API_URL}/api/send-message`, { message, username: user?.username });
 
         const { result, stressAnalysis } = response.data;
 
@@ -36,6 +56,14 @@ const Chat = () => {
 
         setStressLevel(stressAnalysis?.stressLevel || 0);
         setSuggestion(stressAnalysis?.suggestion || "");
+
+        // Update conversation count
+        setConversationCount(prev => prev + 1);
+        
+        // Check if user now has enough conversations for results
+        if (conversationCount + 1 >= 3) {
+          setShowResultsPrompt(true);
+        }
 
         setMessage("");
       } catch (err) {
@@ -91,6 +119,42 @@ const Chat = () => {
             </div>
           </div>}
         </div>
+
+        {/* Conversation Counter */}
+        <div className="conversation-counter">
+          <div className="counter-content">
+            <span className="counter-text">Conversations: {conversationCount}</span>
+            <div className="progress-dots">
+              {[...Array(3)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`progress-dot ${i < conversationCount ? 'active' : ''}`}
+                />
+              ))}
+            </div>
+            {conversationCount < 3 && (
+              <span className="progress-text">
+                {3 - conversationCount} more for insights
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Results Available Prompt */}
+        {showResultsPrompt && (
+          <div className="results-prompt">
+            <div className="results-content">
+              <span className="results-icon">🎉</span>
+              <span className="results-text">Your wellness insights are ready!</span>
+              <button 
+                className="results-button"
+                onClick={() => window.location.href = '/results'}
+              >
+                View Results
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="stress-container">
           <div className="stress-label">Stress Level: {stressLevel} / 100</div>
@@ -448,6 +512,103 @@ const Chat = () => {
           background: #007bff;
         }
 
+        /* Conversation Counter Styles */
+        .conversation-counter {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 15px;
+          padding: 12px 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+        }
+
+        .counter-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: white;
+        }
+
+        .counter-text {
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .progress-dots {
+          display: flex;
+          gap: 6px;
+          margin: 0 15px;
+        }
+
+        .progress-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.3);
+          transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+          background-color: #fff;
+          transform: scale(1.2);
+          box-shadow: 0 2px 8px rgba(255, 255, 255, 0.4);
+        }
+
+        .progress-text {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Results Prompt Styles */
+        .results-prompt {
+          background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+          border-radius: 15px;
+          padding: 15px 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 4px 15px rgba(17, 153, 142, 0.25);
+          animation: pulse-success 2s infinite;
+        }
+
+        .results-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: white;
+        }
+
+        .results-icon {
+          font-size: 20px;
+          margin-right: 10px;
+        }
+
+        .results-text {
+          flex: 1;
+          font-weight: 600;
+          font-size: 14px;
+        }
+
+        .results-button {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 20px;
+          padding: 8px 16px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .results-button:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes pulse-success {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.02); }
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
           .content-container {
@@ -461,6 +622,15 @@ const Chat = () => {
 
           .input-container button {
             padding: 12px 20px;
+          }
+
+          .counter-content, .results-content {
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .progress-dots {
+            margin: 8px 0;
           }
         }
       `}</style>

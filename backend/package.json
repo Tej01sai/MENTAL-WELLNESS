@@ -9,6 +9,9 @@
     "dialogflow": "^1.2.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "mongodb": "^6.10.0",
+    "multer": "^1.4.5-lts.1",
+    "bcryptjs": "^2.4.3",
     "open": "^10.1.0",
     "openai": "^4.86.2"
   },

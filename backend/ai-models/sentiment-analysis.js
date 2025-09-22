@@ -6,4 +6,7 @@ const analyzeSentiment = async (text) => {
   return randomSentiment;
 };
 
-module.exports = { analyzeSentiment };
+// Keep backward compatibility with routes expecting analyzeText
+const analyzeText = analyzeSentiment;
+
+module.exports = { analyzeSentiment, analyzeText };

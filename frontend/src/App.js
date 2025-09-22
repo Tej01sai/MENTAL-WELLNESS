@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Analyze from './pages/Analysis';
 import Results from './pages/Results';
 import Chat from './components/Chat';
+import Profile from './pages/Profile';
 
 const App = () => {
   const { user } = useContext(AuthContext);
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="/analyze" element={<Analyze />} />
             <Route path="/results" element={<Results />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<Navigate to="/home" />} />
           </>
         ) : (

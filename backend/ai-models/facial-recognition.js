@@ -1,6 +1,8 @@
 const analyzeImage = async (image) => {
-    // Replace with actual AI model logic
-    return { emotions: { happy: 0.8, sad: 0.1 } };
-  };
-  
-  module.exports = analyzeImage;
+  // Placeholder: returns a fixed distribution to keep response shape stable
+  return { emotions: { happy: 0.8, sad: 0.1 } };
+};
+
+module.exports = { analyzeImage };
+
+
