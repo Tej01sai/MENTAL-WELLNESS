@@ -87,7 +87,6 @@ async function connectToMongoDB() {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 10000,
       connectTimeoutMS: 10000,
-      socketTimeoutMS: 10000,
       socketTimeoutMS: 45000,
     });
     
