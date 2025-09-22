@@ -46,16 +46,23 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
     
+    // Check if origin is in allowed list
     if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else if (origin && (origin.includes('tejj.me') || origin.includes('vercel.app'))) {
+      // Extra fallback for tejj.me and vercel.app domains
+      console.log(`✅ CORS allowed (fallback) for: ${origin}`);
       callback(null, true);
     } else {
       console.log(`❌ CORS blocked request from: ${origin}`);
+      console.log(`✅ Allowed origins:`, allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 
 // File upload handler for image analysis (multipart/form-data)
