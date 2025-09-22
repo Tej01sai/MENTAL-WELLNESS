@@ -25,7 +25,34 @@ if (process.env.OPENAI_API_KEY) {
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+
+// CORS configuration to allow all your domains
+const allowedOrigins = [
+  'https://tejj.me',
+  'https://www.tejj.me',
+  'https://mental-wellness-xi.vercel.app',
+  'https://mental-wellness-git-main-sai-tejas-projects-2a2e36c4.vercel.app',
+  'https://mental-wellness-5xgj64mvv-sai-tejas-projects-2a2e36c4.vercel.app',
+  'http://localhost:3000', // For local development
+  'http://localhost:3001'  // For local development
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`❌ CORS blocked request from: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // File upload handler for image analysis (multipart/form-data)
 const upload = multer({ storage: multer.memoryStorage() });
