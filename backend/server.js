@@ -11,7 +11,7 @@ const dns = require('dns');
 dns.setServers(['8.8.8.8', '1.1.1.1']); // Use Google and Cloudflare DNS
 
 const app = express();
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 8000;
 
 // Initialize OpenAI
 if (!process.env.OPENAI_API_KEY) {

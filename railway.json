@@ -1,8 +1,5 @@
 {
   "build": {
     "env": "backend"
-  },
-  "deploy": {
-    "startCommand": "node test-server.js"
   }
 }
