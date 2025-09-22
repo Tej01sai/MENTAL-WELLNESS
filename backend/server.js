@@ -27,15 +27,19 @@ if (process.env.OPENAI_API_KEY) {
 app.use(express.json());
 
 // CORS configuration to allow all your domains
-const allowedOrigins = [
-  'https://tejj.me',
-  'https://www.tejj.me',
-  'https://mental-wellness-xi.vercel.app',
-  'https://mental-wellness-git-main-sai-tejas-projects-2a2e36c4.vercel.app',
-  'https://mental-wellness-5xgj64mvv-sai-tejas-projects-2a2e36c4.vercel.app',
-  'http://localhost:3000', // For local development
-  'http://localhost:3001'  // For local development
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'https://tejj.me',
+      'https://www.tejj.me', 
+      'https://mental-wellness-xi.vercel.app',
+      'https://mental-wellness-git-main-sai-tejas-projects-2a2e36c4.vercel.app',
+      'https://mental-wellness-5xgj64mvv-sai-tejas-projects-2a2e36c4.vercel.app',
+      'http://localhost:3000', // For local development
+      'http://localhost:3001'  // For local development
+    ];
+
+console.log('🌐 Allowed CORS Origins:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
