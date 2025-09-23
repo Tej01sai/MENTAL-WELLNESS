@@ -487,15 +487,21 @@ app.get('/health', (req, res) => {
 
 // Start the server after MongoDB connection
 async function startServer() {
-  const mongoConnected = await connectToMongoDB();
-  if (!mongoConnected) {
-    console.log('⚠️ Starting server without MongoDB connection...');
+  try {
+    const mongoConnected = await connectToMongoDB();
+    if (!mongoConnected) {
+      console.log('⚠️ Starting server without MongoDB connection...');
+    }
+    
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`🚀 Server running on port ${port}`);
+      console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
+      console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
+    });
+  } catch (error) {
+    console.error('❌ Server startup failed:', error);
+    process.exit(1);
   }
-  
-  app.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
-    console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
-  });
 }
 
 startServer();
