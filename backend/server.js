@@ -68,24 +68,6 @@ app.use(cors({
 // File upload handler for image analysis (multipart/form-data)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'Mental Wellness API is running!',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
-});
-
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
-});
-
 // MongoDB connection (mirror Python FastAPI setup)
 const MONGODB_URL = process.env.MONGODB_URL || 'mongodb+srv://sai727868:Sai1234@cluster0.p1wnggu.mongodb.net/mental_wellness?retryWrites=true&w=majority';
 const DATABASE_NAME = process.env.DATABASE_NAME || 'mental_wellness';
@@ -506,17 +488,15 @@ app.get('/health', (req, res) => {
 // Start the server after MongoDB connection
 async function startServer() {
   try {
-    console.log('🚀 Starting server without MongoDB for debugging...');
-    
-    // Skip MongoDB connection temporarily for debugging
-    // const mongoConnected = await connectToMongoDB();
-    const mongoConnected = false;
+    const mongoConnected = await connectToMongoDB();
+    if (!mongoConnected) {
+      console.log('⚠️ Starting server without MongoDB connection...');
+    }
     
     app.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${port}`);
-      console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected (skipped for debugging)'}`);
+      console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
       console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
-      console.log(`✅ Railway deployment successful!`);
     });
   } catch (error) {
     console.error('❌ Server startup failed:', error);

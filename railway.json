@@ -1,8 +1,5 @@
 {
   "build": {
     "env": "backend"
-  },
-  "deploy": {
-    "startCommand": "npm start"
   }
 }
