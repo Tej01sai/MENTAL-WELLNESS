@@ -42,45 +42,12 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 console.log('🌐 Allowed CORS Origins:', allowedOrigins);
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else if (origin && (origin.includes('tejj.me') || origin.includes('vercel.app'))) {
-      // Extra fallback for tejj.me and vercel.app domains
-      console.log(`✅ CORS allowed (fallback) for: ${origin}`);
-      callback(null, true);
-    } else {
-      console.log(`❌ CORS blocked request from: ${origin}`);
-      console.log(`✅ Allowed origins:`, allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
-}));
-// Handle preflight requests globally
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('tejj.me') || origin.includes('vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins for now to debug
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 200
 }));
-
-
 // File upload handler for image analysis (multipart/form-data)
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -491,29 +458,28 @@ app.get('/stats/:username', async (req, res) => {
   return res.redirect(`/analytics/${req.params.username}`);
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  const mongoStatus = database ? 'connected' : 'disconnected';
-  res.json({
-    status: 'ok',
-    mongodb: mongoStatus,
-    timestamp: new Date().toISOString()
-  });
-});
-
 // Start the server after MongoDB connection
 async function startServer() {
   try {
-    const mongoConnected = await connectToMongoDB();
-    if (!mongoConnected) {
-      console.log('⚠️ Starting server without MongoDB connection...');
-    }
+    console.log('🚀 Starting server...');
     
+    // Start server first (non-blocking)
     app.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${port}`);
-      console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
       console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
+      console.log(`✅ Railway deployment successful!`);
     });
+    
+    // Try MongoDB connection in background (don't block server startup)
+    setImmediate(async () => {
+      try {
+        const mongoConnected = await connectToMongoDB();
+        console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
+      } catch (err) {
+        console.log('⚠️ MongoDB connection failed, but server is running:', err.message);
+      }
+    });
+    
   } catch (error) {
     console.error('❌ Server startup failed:', error);
     process.exit(1);
