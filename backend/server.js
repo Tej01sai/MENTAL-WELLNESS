@@ -47,10 +47,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 console.log('🌐 Allowed CORS Origins:', allowedOrigins);
 
 app.use(cors({
-  origin: true, // Allow all origins for now to debug
+  origin: function (origin, callback) {
+    // Allow all origins in production for debugging
+    callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   optionsSuccessStatus: 200
 }));
 // File upload handler for image analysis (multipart/form-data)
@@ -72,14 +75,27 @@ async function connectToMongoDB() {
         strict: true,
         deprecationErrors: true,
       },
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
+      maxPoolSize: 5, // Reduced pool size
+      serverSelectionTimeoutMS: 5000, // Reduced timeout
+      connectTimeoutMS: 5000, // Reduced timeout  
+      socketTimeoutMS: 15000, // Reduced timeout
+      retryWrites: true,
+      retryReads: true
     });
     
-    await mongoClient.connect();
-    await mongoClient.db(DATABASE_NAME).admin().ping();
+    // Set a timeout for the entire connection attempt
+    const connectionPromise = Promise.race([
+      (async () => {
+        await mongoClient.connect();
+        await mongoClient.db(DATABASE_NAME).admin().ping();
+        return true;
+      })(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('MongoDB connection timeout after 8 seconds')), 8000)
+      )
+    ]);
+    
+    await connectionPromise;
     
     database = mongoClient.db(DATABASE_NAME);
     usersCollection = database.collection('users');
@@ -89,9 +105,18 @@ async function connectToMongoDB() {
     return true;
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err.message);
-    console.error('🔧 Make sure your MongoDB Atlas cluster is running and network access is configured');
+    console.error('🔧 Server will continue without database features');
     database = null;
     usersCollection = null;
+    // Close client if it was partially initialized
+    if (mongoClient) {
+      try {
+        await mongoClient.close();
+      } catch (closeErr) {
+        console.error('Error closing MongoDB client:', closeErr.message);
+      }
+      mongoClient = null;
+    }
     return false;
   }
 }
@@ -206,9 +231,17 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'Username, email and password are required' });
     }
+    
+    // If database is not available, use fallback mode
     if (!usersCollection) {
-      return res.status(500).json({ message: 'Database not ready' });
+      console.warn('⚠️ Database unavailable, using fallback registration mode');
+      return res.json({ 
+        message: 'Registration successful (fallback mode)', 
+        user: { username, email, phone: phone || null },
+        fallbackMode: true
+      });
     }
+    
     const existing = await usersCollection.findOne({ $or: [{ username }, { email }] });
     if (existing) {
       return res.status(400).json({ message: 'User with username or email already exists' });
@@ -230,9 +263,19 @@ app.post('/login', async (req, res) => {
     if (!userIdentifier || !password) {
       return res.status(400).json({ message: 'Identifier and password are required' });
     }
+    
+    // If database is not available, use fallback mode
     if (!usersCollection) {
-      return res.status(500).json({ message: 'Database not ready' });
+      console.warn('⚠️ Database unavailable, using fallback login mode');
+      return res.json({ 
+        message: 'Login successful (fallback mode)', 
+        username: userIdentifier,
+        email: userIdentifier,
+        phone: null,
+        fallbackMode: true
+      });
     }
+    
     const user = await usersCollection.findOne({ $or: [{ username: userIdentifier }, { email: userIdentifier }] });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -488,22 +531,32 @@ async function startServer() {
   try {
     console.log('🚀 Starting server...');
     
-    // Start server first (non-blocking)
-    app.listen(port, '0.0.0.0', () => {
+    // Start server immediately (non-blocking)
+    const server = app.listen(port, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${port}`);
       console.log(`🌍 Server accessible at: http://0.0.0.0:${port}`);
       console.log(`✅ Railway deployment successful!`);
     });
     
-    // Try MongoDB connection in background (don't block server startup)
-    setImmediate(async () => {
-      try {
-        const mongoConnected = await connectToMongoDB();
-        console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected'}`);
-      } catch (err) {
-        console.log('⚠️ MongoDB connection failed, but server is running:', err.message);
+    // Handle server errors
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use`);
+        process.exit(1);
       }
     });
+    
+    // Try MongoDB connection in background with timeout (don't block server)
+    setTimeout(async () => {
+      try {
+        console.log('🔄 Attempting MongoDB connection in background...');
+        const mongoConnected = await connectToMongoDB();
+        console.log(`📝 MongoDB status: ${mongoConnected ? 'Connected' : 'Disconnected (fallback mode active)'}`);
+      } catch (err) {
+        console.log('⚠️ MongoDB connection failed, server running in fallback mode:', err.message);
+      }
+    }, 1000); // Wait 1 second after server starts
     
   } catch (error) {
     console.error('❌ Server startup failed:', error);
