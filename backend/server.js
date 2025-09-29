@@ -248,6 +248,55 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Google OAuth Login/Register endpoint
+app.post('/auth/google', async (req, res) => {
+  try {
+    const { email, username, provider } = req.body || {};
+    if (!email || !username) {
+      return res.status(400).json({ message: 'Email and username are required for Google auth' });
+    }
+    if (!usersCollection) {
+      return res.status(500).json({ message: 'Database not ready' });
+    }
+    
+    // Check if user already exists
+    let user = await usersCollection.findOne({ email });
+    
+    if (user) {
+      // User exists, log them in
+      return res.json({ 
+        message: 'Login successful', 
+        username: user.username, 
+        email: user.email, 
+        phone: user.phone || null,
+        provider: 'google'
+      });
+    } else {
+      // User doesn't exist, register them
+      const newUser = {
+        username,
+        email,
+        phone: null,
+        provider: 'google',
+        password: null, // Google users don't have passwords
+        createdAt: new Date()
+      };
+      
+      await usersCollection.insertOne(newUser);
+      return res.json({ 
+        message: 'Registration and login successful', 
+        username: newUser.username, 
+        email: newUser.email, 
+        phone: newUser.phone,
+        provider: 'google'
+      });
+    }
+  } catch (e) {
+    console.error('Google auth error:', e);
+    return res.status(500).json({ message: 'Google authentication failed' });
+  }
+});
+
 // Chat (same path signature as Python chatbot: POST /chat)
 app.post('/chat', async (req, res) => {
   try {

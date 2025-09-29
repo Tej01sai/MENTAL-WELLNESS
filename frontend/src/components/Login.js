@@ -16,35 +16,75 @@ const Login = () => {
     setError("");
     
     try {
-      // Simulate login for now (replace with actual backend call later)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('https://mental-wellness-production.up.railway.app/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identifier: email,
+          password: password
+        }),
+      });
       
-      if (email && password) {
-        login({ email, username: email.split('@')[0] });
+      const data = await response.json();
+      
+      if (response.ok) {
+        login({ 
+          email: data.email, 
+          username: data.username, 
+          phone: data.phone 
+        });
         navigate("/home");
       } else {
-        throw new Error("Please fill in all fields");
+        throw new Error(data.message || "Login failed");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError(err.message);
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
-    // Simulate Google login for now
-    setTimeout(() => {
+    setError("");
+    
+    try {
+      // Simulate Google OAuth response (in real app, this would come from Google)
       const mockGoogleUser = {
         email: "user@gmail.com",
-        username: "GoogleUser",
-        provider: "google"
+        username: "GoogleUser"
       };
-      login(mockGoogleUser);
-      navigate("/home");
-    }, 1500);
+      
+      const response = await fetch('https://mental-wellness-production.up.railway.app/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(mockGoogleUser),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        login({ 
+          email: data.email, 
+          username: data.username, 
+          phone: data.phone,
+          provider: data.provider 
+        });
+        navigate("/home");
+      } else {
+        throw new Error(data.message || "Google login failed");
+      }
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError(err.message || "Google login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

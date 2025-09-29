@@ -23,36 +23,77 @@ const Register = () => {
     }
     
     try {
-      // Simulate registration for now (replace with actual backend call later)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch('https://mental-wellness-production.up.railway.app/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: email.split('@')[0], // Use email prefix as username
+          email: email,
+          password: password
+        }),
+      });
       
-      if (email && password) {
-        const newUser = { email, username: email.split('@')[0] };
-        login(newUser);
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Auto-login after successful registration
+        login({ 
+          email: data.user.email, 
+          username: data.user.username, 
+          phone: data.user.phone 
+        });
         navigate("/home");
       } else {
-        throw new Error("Please fill in all fields");
+        throw new Error(data.message || "Registration failed");
       }
     } catch (err) {
       console.error("Registration error:", err);
-      setError(err.message);
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
-    // Simulate Google signup for now
-    setTimeout(() => {
+    setError("");
+    
+    try {
+      // Simulate Google OAuth response (in real app, this would come from Google)
       const mockGoogleUser = {
         email: "newuser@gmail.com",
-        username: "NewGoogleUser",
-        provider: "google"
+        username: "NewGoogleUser"
       };
-      login(mockGoogleUser);
-      navigate("/home");
-    }, 1500);
+      
+      const response = await fetch('https://mental-wellness-production.up.railway.app/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(mockGoogleUser),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        login({ 
+          email: data.email, 
+          username: data.username, 
+          phone: data.phone,
+          provider: data.provider 
+        });
+        navigate("/home");
+      } else {
+        throw new Error(data.message || "Google signup failed");
+      }
+    } catch (err) {
+      console.error("Google signup error:", err);
+      setError(err.message || "Google signup failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
