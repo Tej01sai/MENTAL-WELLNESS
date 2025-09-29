@@ -46,34 +46,56 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 console.log('🌐 Allowed CORS Origins:', allowedOrigins);
 
+// ========== CORS FIX START ==========
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    console.log('🌐 CORS request from origin:', origin);
-    
-    // Allow all origins for debugging
-    return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn('🚫 CORS blocked origin:', origin);
+    return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  optionsSuccessStatus: 200
+  // Let the cors middleware reflect Access-Control-Request-Headers automatically
+  optionsSuccessStatus: 204
 }));
 
-// Additional CORS headers for Railway
+// Ensure all preflights are handled
+app.options('*', cors());
+
+// Additional CORS headers for Railway (reflect requesting origin; no wildcard)
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
+  const origin = req.headers.origin;
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
+  // Reflect requested headers so preflight always succeeds
+  const reqHeaders = req.headers['access-control-request-headers'];
+  if (reqHeaders) {
+    res.setHeader('Access-Control-Allow-Headers', reqHeaders);
+  } else {
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
+    return res.sendStatus(204);
   } else {
     next();
   }
 });
+// ========== CORS FIX END ==========
+
 // File upload handler for image analysis (multipart/form-data)
 const upload = multer({ storage: multer.memoryStorage() });
 
