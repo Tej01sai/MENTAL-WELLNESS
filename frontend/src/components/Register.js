@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
+import { apiCall } from "../api/apiClient";
 
 const Register = () => {
   const { login } = useContext(AuthContext);
@@ -23,11 +24,8 @@ const Register = () => {
     }
     
     try {
-      const response = await fetch('https://mental-wellness-production.up.railway.app/register', {
+      const data = await apiCall('/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           username: email.split('@')[0], // Use email prefix as username
           email: email,
@@ -35,19 +33,13 @@ const Register = () => {
         }),
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        // Auto-login after successful registration
-        login({ 
-          email: data.user.email, 
-          username: data.user.username, 
-          phone: data.user.phone 
-        });
-        navigate("/home");
-      } else {
-        throw new Error(data.message || "Registration failed");
-      }
+      // Auto-login after successful registration
+      login({ 
+        email: data.user.email, 
+        username: data.user.username, 
+        phone: data.user.phone 
+      });
+      navigate("/home");
     } catch (err) {
       console.error("Registration error:", err);
       setError(err.message || "Registration failed. Please try again.");
@@ -67,27 +59,18 @@ const Register = () => {
         username: "NewGoogleUser"
       };
       
-      const response = await fetch('https://mental-wellness-production.up.railway.app/auth/google', {
+      const data = await apiCall('/auth/google', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(mockGoogleUser),
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        login({ 
-          email: data.email, 
-          username: data.username, 
-          phone: data.phone,
-          provider: data.provider 
-        });
-        navigate("/home");
-      } else {
-        throw new Error(data.message || "Google signup failed");
-      }
+      login({ 
+        email: data.email, 
+        username: data.username, 
+        phone: data.phone,
+        provider: data.provider 
+      });
+      navigate("/home");
     } catch (err) {
       console.error("Google signup error:", err);
       setError(err.message || "Google signup failed. Please try again.");

@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../AuthContext";
+import { apiCall } from "../api/apiClient";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -16,29 +17,20 @@ const Login = () => {
     setError("");
     
     try {
-      const response = await fetch('https://mental-wellness-production.up.railway.app/login', {
+      const data = await apiCall('/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           identifier: email,
           password: password
         }),
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        login({ 
-          email: data.email, 
-          username: data.username, 
-          phone: data.phone 
-        });
-        navigate("/home");
-      } else {
-        throw new Error(data.message || "Login failed");
-      }
+      login({ 
+        email: data.email, 
+        username: data.username, 
+        phone: data.phone 
+      });
+      navigate("/home");
     } catch (err) {
       console.error("Login error:", err);
       setError(err.message || "Login failed. Please try again.");
@@ -58,27 +50,18 @@ const Login = () => {
         username: "GoogleUser"
       };
       
-      const response = await fetch('https://mental-wellness-production.up.railway.app/auth/google', {
+      const data = await apiCall('/auth/google', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(mockGoogleUser),
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        login({ 
-          email: data.email, 
-          username: data.username, 
-          phone: data.phone,
-          provider: data.provider 
-        });
-        navigate("/home");
-      } else {
-        throw new Error(data.message || "Google login failed");
-      }
+      login({ 
+        email: data.email, 
+        username: data.username, 
+        phone: data.phone,
+        provider: data.provider 
+      });
+      navigate("/home");
     } catch (err) {
       console.error("Google login error:", err);
       setError(err.message || "Google login failed. Please try again.");

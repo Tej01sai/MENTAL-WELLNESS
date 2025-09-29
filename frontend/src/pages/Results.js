@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../AuthContext';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
+import { apiCall } from '../api/apiClient';
 
 const Results = () => {
   const { user } = useContext(AuthContext);
@@ -12,8 +13,7 @@ const Results = () => {
       if (!user?.username) return;
       setLoading(true);
       try {
-        const res = await fetch(`https://mental-wellness-production.up.railway.app/analytics/${encodeURIComponent(user.username)}`);
-        const data = await res.json();
+        const data = await apiCall(`/analytics/${encodeURIComponent(user.username)}`);
         setAnalytics(data);
       } catch (e) {
         console.error('Failed to load analytics:', e);
