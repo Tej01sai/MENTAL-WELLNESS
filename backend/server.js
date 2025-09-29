@@ -47,12 +47,33 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 console.log('🌐 Allowed CORS Origins:', allowedOrigins);
 
 app.use(cors({
-  origin: true, // Allow all origins for now to debug
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    console.log('🌐 CORS request from origin:', origin);
+    
+    // Allow all origins for debugging
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   optionsSuccessStatus: 200
 }));
+
+// Additional CORS headers for Railway
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 // File upload handler for image analysis (multipart/form-data)
 const upload = multer({ storage: multer.memoryStorage() });
 
