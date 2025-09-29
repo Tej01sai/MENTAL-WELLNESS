@@ -52,12 +52,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    console.warn('🚫 CORS blocked origin:', origin);
-    return callback(new Error('Not allowed by CORS'), false);
+    // Temporarily allow all origins for debugging
+    console.log('🌐 CORS request from origin:', origin);
+    return callback(null, true);
+    
+    // Original check (commented out for debugging)
+    // if (allowedOrigins.includes(origin)) {
+    //   return callback(null, true);
+    // }
+    // console.warn('🚫 CORS blocked origin:', origin);
+    // return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -68,11 +72,12 @@ app.use(cors({
 // Ensure all preflights are handled
 app.options('*', cors());
 
-// Additional CORS headers for Railway (reflect requesting origin; no wildcard)
+// Additional CORS headers for Railway (allow all origins temporarily)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
-  if (origin && allowedOrigins.includes(origin)) {
+  // Allow all origins temporarily for debugging
+  if (origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');

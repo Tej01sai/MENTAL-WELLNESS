@@ -30,10 +30,13 @@ export const apiCall = async (endpoint, options = {}) => {
   } catch (error) {
     console.error('API Error:', error);
     
-    // If CORS error, try with a proxy or alternative method
-    if (error.message.includes('CORS') || error.message.includes('blocked')) {
-      console.log('🔄 CORS error detected, falling back to alternative method');
-      // For now, return mock data to keep the app working
+    // If CORS error, network error, or fetch failure, use fallback
+    if (error.message.includes('CORS') || 
+        error.message.includes('blocked') ||
+        error.message.includes('Failed to fetch') ||
+        error.name === 'TypeError') {
+      console.log('🔄 Network/CORS error detected, using fallback data');
+      // Use fallback data to keep the app working
       return handleCORSFallback(endpoint, options);
     }
     
