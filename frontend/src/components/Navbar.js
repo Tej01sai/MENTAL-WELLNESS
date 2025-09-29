@@ -1,26 +1,44 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaHome, FaChartLine, FaList, FaComments, FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { FaHome, FaChartLine, FaList, FaComments, FaBars, FaTimes, FaUser, FaSignInAlt, FaSignOutAlt, FaUserPlus } from 'react-icons/fa';
 import { AuthContext } from '../AuthContext';
 
 const Navbar = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const profileLabel = user?.username ? user.username : 'Profile';
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+  };
 
-  const navItems = [
+  // Base navigation items available to everyone
+  const baseNavItems = [
     { path: '/', label: 'Home', icon: <FaHome /> },
     { path: '/analyze', label: 'Analyze', icon: <FaChartLine /> },
-    { path: '/results', label: 'Results', icon: <FaList /> },
     { path: '/chat', label: 'Chat', icon: <FaComments /> },
-    { path: '/profile', label: profileLabel, icon: <FaUser /> },
   ];
+
+  // Additional items for logged-in users
+  const userNavItems = [
+    { path: '/results', label: 'Results', icon: <FaList /> },
+    { path: '/profile', label: user?.username || 'Profile', icon: <FaUser /> },
+  ];
+
+  // Authentication items
+  const authItems = user ? [
+    { action: handleLogout, label: 'Logout', icon: <FaSignOutAlt /> }
+  ] : [
+    { path: '/login', label: 'Login', icon: <FaSignInAlt /> },
+    { path: '/register', label: 'Sign Up', icon: <FaUserPlus /> }
+  ];
+
+  const allNavItems = [...baseNavItems, ...(user ? userNavItems : []), ...authItems];
 
   return (
     <nav className="navbar">
@@ -34,16 +52,28 @@ const Navbar = () => {
         </div>
 
         <ul className={isMenuOpen ? 'nav-menu active' : 'nav-menu'}>
-          {navItems.map((item) => (
-            <li key={item.path} className="nav-item">
-              <Link
-                to={item.path}
-                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                <span className="nav-label">{item.label}</span>
-              </Link>
+          {allNavItems.map((item, index) => (
+            <li key={item.path || item.label} className="nav-item">
+              {item.action ? (
+                // Logout or other action buttons
+                <button
+                  onClick={item.action}
+                  className={`nav-link nav-button`}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                </button>
+              ) : (
+                // Regular navigation links
+                <Link
+                  to={item.path}
+                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              )}
             </li>
           ))}
         </ul>
@@ -59,7 +89,8 @@ const Navbar = () => {
         .nav-menu { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; }
         .nav-item { height: 70px; position: relative; display: flex; align-items: center; }
         .nav-link { display: flex; align-items: center; text-decoration: none; color: #fff; height: 100%; padding: 0 20px; transition: all 0.3s ease; }
-        .nav-link:hover { color: #ffdd57; background-color: rgba(255,255,255,0.1); transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .nav-button { display: flex; align-items: center; background: none; border: none; color: #fff; height: 100%; padding: 0 20px; transition: all 0.3s ease; cursor: pointer; font-size: inherit; font-family: inherit; }
+        .nav-link:hover, .nav-button:hover { color: #ffdd57; background-color: rgba(255,255,255,0.1); transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .nav-link.active { color: #ffdd57; font-weight: bold; position: relative; }
         .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #ffdd57; animation: slideIn 0.3s ease-in-out; }
         @keyframes slideIn { from { width: 0; opacity: 0; } to { width: 100%; opacity: 1; } }
@@ -78,8 +109,9 @@ const Navbar = () => {
           .nav-menu.active .nav-item:nth-child(4) { animation-delay: 0.4s; }
           .nav-menu.active .nav-item:nth-child(5) { animation-delay: 0.5s; }
           .nav-link { width: 100%; display: flex; justify-content: center; padding: 20px; }
+          .nav-button { width: 100%; display: flex; justify-content: center; padding: 20px; }
           .nav-link.active::after { display: none; }
-          .nav-link.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #ffdd57; }
+          .nav-link.active, .nav-button.active { background-color: rgba(255,255,255,0.1); border-left: 4px solid #ffdd57; }
         }
       `}</style>
     </nav>

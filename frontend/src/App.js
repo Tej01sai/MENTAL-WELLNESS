@@ -18,25 +18,24 @@ const App = () => {
 
   return (
     <Router>
-      {user && <Navbar />}
+      <Navbar />
       <Routes>
-        {/* Public routes */}
+        {/* Public routes - accessible to everyone */}
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/analyze" element={<Analyze />} />
+        <Route path="/chat" element={<Chat />} />
+        
+        {/* Optional login routes */}
         <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/home" /> : <Register />} />
-
-        {/* Protected routes */}
-        {user ? (
-          <>
-            <Route path="/home" element={<Home />} />
-            <Route path="/analyze" element={<Analyze />} />
-            <Route path="/results" element={<Results />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<Navigate to="/home" />} />
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/login" />} />
-        )}
+        
+        {/* Premium/User-specific features (require login) */}
+        <Route path="/results" element={user ? <Results /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+        
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </Router>
   );

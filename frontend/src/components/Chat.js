@@ -2,7 +2,37 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../AuthContext";
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://mental-wellness-production.up.railway.app"; // 🔥 Use deployed Railway backend
+const API_URL = process.env.REACT_APP_API_URL || ""; // Remove Railway URL since it's not working
+
+// Fallback chat responses for when backend is unavailable
+const fallbackResponses = [
+  "Thank you for sharing that with me. How are you feeling right now?",
+  "I understand this might be difficult. You're taking a positive step by reaching out.",
+  "It sounds like you're going through something challenging. Would you like to talk about it?",
+  "I'm here to listen and support you. What would help you feel better today?",
+  "That's completely understandable. Remember that it's okay to feel this way.",
+  "You're being very brave by talking about this. What usually helps you when you feel stressed?",
+  "I hear you. Taking time to express your feelings is really important for your wellbeing.",
+  "Thank you for trusting me with your thoughts. What brings you comfort during tough times?",
+];
+
+const getFallbackResponse = () => {
+  return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+};
+
+const analyzeStressFallback = (text) => {
+  const stressWords = ['stress', 'anxious', 'worried', 'panic', 'overwhelmed', 'depressed', 'sad', 'tired', 'exhausted'];
+  const words = text.toLowerCase().split(' ');
+  const stressCount = words.filter(word => stressWords.some(sw => word.includes(sw))).length;
+  const stressLevel = Math.min(90, stressCount * 20 + Math.random() * 30);
+  
+  return {
+    stressLevel: Math.round(stressLevel),
+    suggestion: stressLevel > 50 ? 
+      "Try taking deep breaths and focusing on the present moment." : 
+      "You're doing great! Keep taking care of yourself."
+  };
+};
 
 const Chat = () => {
   const { user } = useContext(AuthContext);
@@ -43,36 +73,61 @@ const Chat = () => {
   const handleSend = async () => {
     if (message.trim()) {
       setIsLoading(true);
+      
+      // Add user message immediately
+      const userMessage = { text: message, isUser: true };
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+      
       try {
-        const response = await axios.post(`${API_URL}/api/send-message`, { message, username: user?.username });
+        let result, stressAnalysis;
+        
+        if (API_URL) {
+          // Try to use the real API if available
+          const response = await axios.post(`${API_URL}/api/send-message`, { 
+            message, 
+            username: user?.username 
+          });
+          result = response.data.result;
+          stressAnalysis = response.data.stressAnalysis;
+        } else {
+          // Use fallback response when API is not available
+          result = getFallbackResponse();
+          stressAnalysis = analyzeStressFallback(message);
+        }
 
-        const { result, stressAnalysis } = response.data;
-
+        // Add bot response
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: message, isUser: true },
-          { text: result, isUser: false },
+          { text: result, isUser: false, isDemo: !API_URL },
         ]);
 
         setStressLevel(stressAnalysis?.stressLevel || 0);
         setSuggestion(stressAnalysis?.suggestion || "");
 
-        // Update conversation count
-        setConversationCount(prev => prev + 1);
-        
-        // Check if user now has enough conversations for results
-        if (conversationCount + 1 >= 3) {
-          setShowResultsPrompt(true);
+        // Update conversation count (only for logged-in users with real API)
+        if (user?.username && API_URL) {
+          setConversationCount(prev => prev + 1);
+          if (conversationCount + 1 >= 3) {
+            setShowResultsPrompt(true);
+          }
         }
 
         setMessage("");
       } catch (err) {
-        console.error("Error sending message:", err);
+        console.error("API Error, using fallback:", err);
+        
+        // Use fallback response when API fails
+        const fallbackResult = getFallbackResponse();
+        const fallbackStress = analyzeStressFallback(message);
+        
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: message, isUser: true },
-          { text: "Failed to send message.", isUser: false },
+          { text: fallbackResult, isUser: false, isDemo: true },
         ]);
+        
+        setStressLevel(fallbackStress.stressLevel);
+        setSuggestion(fallbackStress.suggestion);
+        setMessage("");
       } finally {
         setIsLoading(false);
       }
