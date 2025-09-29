@@ -5,8 +5,8 @@ import Navbar from './components/Navbar';
 import { AuthContext } from './AuthContext';
 
 // Pages
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './components/Login';
+import Register from './components/Register';
 import Home from './pages/Home';
 import Analyze from './pages/Analysis';
 import Results from './pages/Results';
